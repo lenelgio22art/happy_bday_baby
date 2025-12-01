@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Our Photo Album</title>
+<style>
+/* --- CSS Awal dari index.html Anda --- */
+:root{
+  --bg:#d45f98;
+  --note:#ffd6ea;
+  --accent:#ff2f80;
+  --white:#fff;
+  --pixel: 'Press Start 2P', monospace;
+}
+html,body{height:100%;margin:0;background:var(--bg);font-family:Inter,system-ui,Arial;overflow:hidden; display: flex; align-items: center; justify-content: center;}
+
+@font-face{
+  font-family: 'PressPixel';
+  src: url('https://fonts.cdnfonts.com/s/15025/PressStart2P-Regular.woff') format('woff');
+}
+
+/* --- CSS Baru untuk Album --- */
+.stage {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+}
+
+/* --- Halaman Cover / Pembuka --- */
+#coverPage {
+    position: absolute;
+    width: 450px;
+    height: 600px;
+    background: linear-gradient(180deg,#ffd6ea,#ff8fb3);
+    border: 12px solid var(--white);
+    border-radius: 8px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    cursor: pointer;
+    transition: opacity 1s ease-out;
+}
+
+#coverPage img {
+    width: 250px;
+    filter: drop-shadow(0 15px 25px rgba(255, 60, 120, 0.3));
+    animation: pulse 2s infinite ease-in-out;
+}
+
+#coverPage p {
+    font-family: 'PressPixel', monospace;
+    color: #6b0026;
+    margin-top: 30px;
+    font-size: 20px;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+
+/* --- Album (Awalnya Sembunyi) --- */
+#albumWrapper {
+    opacity: 0; /* Awalnya tidak terlihat */
+    transition: opacity 1s ease-in;
+    pointer-events: none; /* Nonaktifkan interaksi saat tersembunyi */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+#albumWrapper.active {
+    opacity: 1; /* Tampilkan saat aktif */
+    pointer-events: all;
+}
+
+/* Sisa CSS Album sama seperti sebelumnya */
+#albumContainer {
+    position: relative;
+    width: 450px; 
+    height: 600px; 
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    border: 12px solid var(--white);
+    background: #ffecf2; 
+    border-radius: 8px;
+    overflow: hidden;
+    perspective: 1200px; 
+    transition: all 0.5s ease-in-out; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.page {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transition: transform 0.8s ease-in-out;
+    backface-visibility: hidden; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #ffecf2; 
+}
+
+#currentPhoto {
+    max-width: 95%;
+    max-height: 85%;
+    object-fit: contain;
+    margin-top: 15px;
+    border-radius: 6px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+#photoCaption {
+    font-family: Inter, system-ui, Arial;
+    font-size: 14px;
+    color: #6b0030;
+    padding: 10px 20px;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+/* Navigasi Tombol */
+#navControls {
+    margin-top: 40px;
+    z-index: 100;
+}
+
+#navControls button {
+    font-family: 'PressPixel', monospace;
+    padding: 12px 24px;
+    margin: 0 15px;
+    border-radius: 10px;
+    border: 3px solid white;
+    background: #ffcee0;
+    color: #6b0026;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    transition: background 0.2s, transform 0.1s;
+}
+
+#navControls button:hover:not(:disabled) {
+    background: #ffb8d4;
+    transform: translateY(-2px);
+}
+
+#navControls button:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+}
+
+#navControls button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* Halaman Akhir Album */
+#finalPage {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background: linear-gradient(180deg,#ffd6ea,#ff8fb3); 
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    z-index: 5;
+    transform: rotateY(180deg); 
+    transition: transform 0.8s ease-in-out;
+    backface-visibility: hidden;
+    color: #6b0030;
+    font-family: 'PressPixel', monospace;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
+}
+
+#finalPage.visible {
+    transform: rotateY(0deg); 
+    z-index: 10;
+}
+
+#finalPage img {
+    width: 150px;
+    height: auto;
+    margin-top: 20px;
+    filter: drop-shadow(0 10px 15px rgba(0,0,0,0.15));
+    transition: transform 0.2s;
+}
+
+#finalPage img:hover {
+    transform: scale(1.05);
+}
+
+#musicPlayer {
+    /* Kami akan tetap menyembunyikannya */
+}
+
+/* Responsive Sederhana */
+@media (max-width: 600px) {
+    #albumContainer, #coverPage {
+        width: 300px;
+        height: 400px;
+    }
+    #navControls button {
+        padding: 8px 15px;
+        margin: 0 8px;
+        font-size: 12px;
+    }
+    #finalPage {
+        font-size: 18px;
+    }
+    #finalPage img {
+        width: 100px;
+    }
+    #coverPage img {
+        width: 180px;
+    }
+}
+</style>
+</head>
+<body>
+    <div class="stage">
+        
+        <audio id="musicPlayer" loop>
+            <source src="audio/olivia_dean_so_easy.mp3" type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio>
+
+        <div id="coverPage">
+            <img src="img/kiss.PNG" alt="Kiss Icon"> 
+            <p>PRESS HERE!</p>
+        </div>
+
+        <div id="albumWrapper">
+            <div id="albumContainer">
+                <div id="photoPage" class="page">
+                    <img id="currentPhoto" src="" alt="Album Photo">
+                    <p id="photoCaption"></p>
+                </div>
+                
+                <div id="finalPage">
+                    PRESS ME!
+                    <img id="finalChibi" src="img/chibi_you.PNG" alt="Chibi You">
+                </div>
+            </div>
+            
+            <div id="navControls">
+                <button id="prevBtn" disabled>❮ PREVIOUS</button>
+                <button id="nextBtn">NEXT ❯</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+// --- DATA ALBUM (17 FOTO) ---
+const albumData = [];
+// Membuat 17 entri data secara otomatis (photo1.jpg sampai photo17.jpg)
+for (let i = 1; i <= 17; i++) {
+    albumData.push({ 
+        src: `img/photo${i}.jpg`, 
+        caption: `I LOVE U SOOOOO MUUUUCH OTTERIE❤️` 
+    });
+}
+// Anda bisa mengubah teks caption di sini jika mau:
+// albumData[0].caption = "I like this pic babe!";
+// albumData[1].caption = "Klo diliat-liat lucu juga kita";
+// albumData[2].caption = "Sipaling digendong naik gunung xD";
+// albumData[3].caption = "GEMASNYAAAA ARGHK!";
+// albumData[4].caption = "Kapan nyore lagi nih yang?";
+// albumData[5].caption = "Tatapannya itu loh ^^";
+// albumData[6].caption = "Suka dah klo kita ada fto gandengan ^^";
+// albumData[7].caption = "UTUTUTUTUUU";
+// albumData[8].caption = "Ini lucu kan?";
+// albumData[9].caption = "Inget ini gak?";
+// albumData[10].caption = "CANTIKNYA DISINI OTTER";
+// albumData[11].caption = "Inimah fto kita paling keren diantara semuanya. WHY? cuz u wearing red even tho u like RB";
+// albumData[12].caption = "Dino, Otterie, Bear, kurang satu member lagi nih, Lion";
+// albumData[13].caption = "BEUH! HOT MAMA XD";
+// albumData[14].caption = "Kenapa dah kepikiran bikin ini kemaren yak HAHAHA";
+// albumData[15].caption = "Ingat take-nya kayak apa? Cuma kita yang tau ;)";
+// albumData[16].caption = "I Love you so freakin much Otterie.";
+
+let currentPage = 0; 
+const totalPhotos = albumData.length;
+
+// Ambil elemen DOM
+const albumWrapper = document.getElementById('albumWrapper');
+const coverPage = document.getElementById('coverPage');
+const photoPage = document.getElementById('photoPage');
+const currentPhoto = document.getElementById('currentPhoto');
+const photoCaption = document.getElementById('photoCaption');
+const finalPage = document.getElementById('finalPage');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const finalChibi = document.getElementById('finalChibi');
+const musicPlayer = document.getElementById('musicPlayer');
+
+// --- FUNGSI UTAMA START ALBUM ---
+function startAlbum() {
+    // 1. Putar Musik (Dipicu oleh Interaksi Pengguna)
+    musicPlayer.volume = 0.5;
+    musicPlayer.play();
+    
+    // 2. Sembunyikan Cover
+    coverPage.style.opacity = 0;
+    
+    // 3. Tampilkan Album setelah Cover hilang
+    setTimeout(() => {
+        coverPage.style.display = 'none';
+        albumWrapper.classList.add('active'); // Tampilkan Album
+        loadPageContent(currentPage); // Muat foto pertama (photo1.jpg)
+    }, 1000); // Sesuai durasi transisi opacity (1s)
+}
+
+// Event Listener untuk Tombol "PRESS HERE!"
+coverPage.addEventListener('click', startAlbum);
+
+
+// --- FUNGSI NAVIGASI ALBUM (Sama seperti sebelumnya) ---
+
+function loadPageContent(index) {
+    if (index >= 0 && index < totalPhotos) {
+        const data = albumData[index];
+        currentPhoto.src = data.src;
+        photoCaption.innerText = data.caption;
+        currentPhoto.alt = data.caption; 
+    }
+    updateNavigationButtons(index);
+}
+
+function updateNavigationButtons(index) {
+    prevBtn.disabled = (index === 0);
+    nextBtn.disabled = (index === totalPhotos); 
+}
+
+function goToPage(index, direction) {
+    finalPage.classList.remove('visible');
+    
+    const rotation = (direction === 'next') ? -180 : 180;
+
+    photoPage.style.transform = `rotateY(${rotation}deg)`;
+    photoPage.style.zIndex = 20;
+
+    setTimeout(() => {
+        photoPage.style.transform = `rotateY(${-rotation}deg)`;
+        photoPage.style.zIndex = 10; 
+
+        currentPage = index;
+        if (currentPage < totalPhotos) {
+            // Memuat Konten Foto
+            photoPage.style.display = 'flex'; // Pastikan terlihat
+            loadPageContent(currentPage); 
+        } else {
+            // Memuat Halaman Akhir
+            showFinalPage();
+        }
+        
+        setTimeout(() => {
+            photoPage.style.transform = 'rotateY(0deg)';
+        }, 50);
+        
+    }, 400); 
+}
+
+function showFinalPage() {
+    photoPage.style.display = 'none'; 
+    finalPage.classList.add('visible'); 
+    updateNavigationButtons(currentPage);
+}
+
+// Event Listeners Tombol Navigasi
+nextBtn.addEventListener('click', () => {
+    if (currentPage === totalPhotos - 1) {
+        goToPage(totalPhotos, 'next'); // Pindah ke final page
+    } else if (currentPage < totalPhotos - 1) {
+        goToPage(currentPage + 1, 'next');
+    }
+});
+
+prevBtn.addEventListener('click', () => {
+    if (currentPage === totalPhotos) {
+        // Kembali dari final page ke foto terakhir
+        goToPage(totalPhotos - 1, 'prev');
+    } else if (currentPage > 0) {
+        goToPage(currentPage - 1, 'prev');
+    }
+});
+
+// Event Listener untuk tombol "PRESS ME!"
+finalChibi.addEventListener('click', () => {
+    window.location.href = 'game.html'; 
+});
+
+// --- Inisialisasi Saat Halaman Dimuat ---
+window.onload = () => {
+    // Tidak memuat foto/musik saat onload, biarkan cover yang menginisiasi
+};
+</script>
+</body>
+</html>

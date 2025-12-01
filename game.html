@@ -1,0 +1,598 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Pixel Defense Game</title>
+    <!-- Memuat Tailwind CSS untuk utilitas dasar dan Press Start 2P font untuk nuansa pixel -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Konfigurasi Font Pixel */
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        
+        :root {
+            --pixel-font: 'Press Start 2P', cursive;
+            --pink-accent: #ff4799;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            background-color: white; /* Halaman full putih bersih */
+            font-family: var(--pixel-font);
+            overflow: hidden;
+            user-select: none;
+            cursor: default;
+        }
+
+        /* CATATAN PENTING: Semua aset (peluru, ledakan, ghost, dll.) sekarang diasumsikan
+           menggunakan format .PNG transparan agar menyatu dengan latar belakang putih. */
+
+
+        /* Container utama game */
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        /* Styling Tombol START */
+        #startButton {
+            font-size: 1.5rem;
+            padding: 1rem 2.5rem;
+            margin-top: 2rem;
+            background-color: var(--pink-accent);
+            color: white;
+            border: 4px solid black;
+            border-radius: 8px;
+            box-shadow: 6px 6px 0px black;
+            transition: all 0.1s;
+            cursor: pointer;
+        }
+
+        #startButton:hover {
+            box-shadow: 3px 3px 0px black;
+            transform: translate(3px, 3px);
+        }
+
+        /* Styling Sprites Dasar */
+        .sprite {
+            position: absolute;
+            transition: transform 0.2s; /* Transisi untuk efek tembakan/hover */
+            image-rendering: pixelated; /* Memastikan gambar terlihat pixelated */
+        }
+        
+        /* UKURAN SPRITE DITINGKATKAN */
+        /* Chibi (Player) */
+        #chibi {
+            width: 120px; /* Diperbesar */
+            height: auto;
+            left: 50px;
+            top: 50%;
+            transform: translateY(-50%);
+            transition: left 0.5s ease-in-out, top 0.5s ease-in-out; 
+            cursor: pointer; 
+            z-index: 100;
+        }
+
+        /* Gun Kosong / Gun */
+        #gunEmpty, #gun {
+            width: 180px; /* Diperbesar */
+            height: auto;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            cursor: pointer; 
+            z-index: 50;
+        }
+        
+        /* Zombie (Enemy) */
+        .zombie {
+            width: 150px; /* Diperbesar */
+            height: auto;
+            /* Posisi awal dikontrol oleh JS (dari segala arah) */
+            transition: none; 
+            cursor: crosshair; 
+            z-index: 80;
+        }
+
+        /* Projectile/Bullet */
+        .peluru {
+            width: 30px; /* Disesuaikan */
+            height: 12px;
+            position: absolute;
+            z-index: 150;
+            transition: all 0.2s linear; 
+            pointer-events: none; 
+        }
+        
+        /* Explosion & Ghost */
+        #ledakan, #ghost {
+            width: 180px; /* Diperbesar */
+            height: 180px;
+            position: absolute;
+            z-index: 200;
+            display: none;
+        }
+
+        /* Final Screen */
+        #finalScreen {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        #finalScreen img {
+            width: 90%; /* Diperbesar untuk mengisi layar */
+            max-width: 800px;
+            height: auto;
+            margin-bottom: 2rem;
+            image-rendering: pixelated;
+        }
+
+        #gameOverText {
+            font-size: 1.5rem; /* Disesuaikan agar muat */
+            color: white;
+            cursor: pointer;
+            border: 4px solid black;
+            padding: 15px 30px;
+            background-color: var(--pink-accent);
+            box-shadow: 6px 6px 0px black;
+        }
+        
+        #gameOverText:hover {
+            box-shadow: 3px 3px 0px black;
+            transform: translate(3px, 3px);
+        }
+
+
+        /* Utility untuk menyembunyikan elemen */
+        .hidden-sprite {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="gameContainer">
+        <!-- Audio Elements -->
+        <audio id="audioStep" src="audio/step.mp3" preload="auto"></audio>
+        <audio id="audioShoot" src="audio/shoot.mpmp3" preload="auto"></audio>
+        <audio id="audioHit" src="audio/hit.mp3" preload="auto"></audio>
+        <audio id="audioGameOver" src="audio/gameover.mp3" preload="auto"></audio>
+        <!-- Musik Latar -->
+        <audio id="audioBGM" src="audio/bgm.mp3" preload="auto"></audio> 
+
+        <!-- Start Screen -->
+        <div id="startScreen" class="flex flex-col items-center justify-center p-4">
+            <img id="awalgame" src="img/awalgame.PNG" alt="Awal Game" 
+                 class="max-w-full max-h-[70vh] w-auto h-auto" 
+                 style="image-rendering: pixelated; object-fit: contain;" />
+            <button id="startButton">START</button>
+        </div>
+
+        <!-- Game Sprites (Awalnya tersembunyi) -->
+        <img id="chibi" src="img/chibi_baby.PNG" alt="Chibi Player" class="sprite hidden-sprite" />
+        <img id="gunEmpty" src="img/gunkosong.PNG" alt="Gun Kosong" class="sprite hidden-sprite" />
+        <img id="gun" src="img/gun.PNG" alt="Gun Full" class="sprite hidden-sprite" />
+        <img id="ledakan" src="img/ledakan.PNG" alt="Ledakan" class="sprite" />
+        <img id="ghost" src="img/ghost.PNG" alt="Ghost" class="sprite" />
+        
+        <!-- Final Screen (Awalnya tersembunyi) -->
+        <div id="finalScreen">
+            <!-- end.PNG akan muncul sebentar sebagai momen kekalahan final -->
+            <img id="endImage" src="img/end.PNG" alt="End Game" class="hidden-sprite" />
+            <!-- gameover.PNG akan muncul setelahnya dengan tombol navigasi -->
+            <img id="gameOverImage" src="img/gameover.PNG" alt="Game Over" class="hidden-sprite" />
+            <!-- Tombol yang diminta -->
+            <div id="gameOverText" class="hidden-sprite">CLAIM UR TINY REWARD</div>
+        </div>
+    </div>
+
+<script>
+    // --- KONFIGURASI GAME ---
+    const GAME_STATES = {
+        START: 'START',
+        MOVE_CHIBI: 'MOVE_CHIBI',
+        ACQUIRE_GUN: 'ACQUIRE_GUN',
+        DEFENSE: 'DEFENSE',
+        BOSS: 'BOSS',
+        GAME_OVER: 'GAME_OVER'
+    };
+    let gameState = GAME_STATES.START;
+    let currentZombieCount = 0;
+    let zombieInterval = null;
+    let bossHealth = 4; 
+    
+    // Konfigurasi Posisi dan Kecepatan
+    // *** DITINGKATKAN DRASTIS AGAR TERJADI SERBUAN MASIF ***
+    const MAX_ZOMBIES = 100; // Jumlah zombie maksimal diperbanyak
+    let zombieSpeed = 1.5; 
+    const GUN_TARGET_LEFT_PERCENT = 40; // Gun mundur ke 40% setelah diambil
+    const COLLISION_THRESHOLD = 90; // Jarak piksel untuk tabrakan
+    const ZOMBIE_OFFSCREEN_OFFSET = 150; // Jarak awal zombie dari tepi layar
+
+    // --- ELEMEN DOM ---
+    const gameContainer = document.getElementById('gameContainer');
+    const startScreen = document.getElementById('startScreen');
+    const startButton = document.getElementById('startButton');
+    const chibi = document.getElementById('chibi');
+    const gunEmpty = document.getElementById('gunEmpty');
+    const gun = document.getElementById('gun');
+    const ledakan = document.getElementById('ledakan');
+    const ghost = document.getElementById('ghost');
+    const finalScreen = document.getElementById('finalScreen');
+    const endImage = document.getElementById('endImage');
+    const gameOverImage = document.getElementById('gameOverImage');
+    const gameOverText = document.getElementById('gameOverText');
+    
+    // --- AUDIO ---
+    const audioStep = document.getElementById('audioStep');
+    const audioShoot = document.getElementById('audioShoot');
+    const audioHit = document.getElementById('audioHit');
+    const audioGameOver = document.getElementById('audioGameOver');
+    const audioBGM = document.getElementById('audioBGM'); 
+    
+    // Fungsi untuk memainkan audio
+    function playAudio(audioElement, loop = false) {
+        audioElement.currentTime = 0;
+        audioElement.loop = loop;
+        audioElement.play().catch(e => console.warn("Audio play failed:", e));
+    }
+    
+    // Fungsi untuk menghentikan audio
+    function stopAudio(audioElement) {
+        audioElement.pause();
+        audioElement.currentTime = 0;
+    }
+
+    // --- STATE MACHINE ---
+    
+    // START
+    startButton.addEventListener('click', () => {
+        startScreen.classList.add('hidden-sprite');
+        playAudio(audioBGM, true); // Perubahan 1: Mulai BGM di tombol START
+        setupMoveChibiState();
+    });
+
+    // MOVE_CHIBI State (Player bisa bergerak dan ambil gun kosong)
+    function setupMoveChibiState() {
+        gameState = GAME_STATES.MOVE_CHIBI;
+        chibi.classList.remove('hidden-sprite');
+        gunEmpty.classList.remove('hidden-sprite');
+        chibi.style.cursor = 'pointer';
+
+        // Set posisi gunEmpty di tengah awal
+        gunEmpty.style.top = '50%';
+        gunEmpty.style.left = '50%';
+        gun.style.transition = 'none'; // Reset transisi
+    }
+
+    // Gerakan Chibi ke posisi klik
+    gameContainer.addEventListener('click', (e) => {
+        if (gameState !== GAME_STATES.MOVE_CHIBI) return;
+
+        const targetX = e.clientX - chibi.offsetWidth / 2;
+        const targetY = e.clientY - chibi.offsetHeight / 2;
+
+        chibi.style.left = `${targetX}px`;
+        chibi.style.top = `${targetY}px`;
+        playAudio(audioStep);
+        
+        // Cek apakah Chibi sudah dekat dengan Gun Kosong
+        if (e.target.id === 'gunEmpty') {
+            // Pindahkan Chibi ke GunEmpty untuk efek visual
+            chibi.style.left = gunEmpty.style.left;
+            chibi.style.top = gunEmpty.style.top;
+            
+            // Tunggu Chibi selesai bergerak
+            setTimeout(setupAcquireGunState, 600);
+        }
+    });
+
+    // ACQUIRE_GUN State (Chibi ambil gun dan Gun Mundur)
+    function setupAcquireGunState() {
+        gameState = GAME_STATES.ACQUIRE_GUN;
+        chibi.classList.add('hidden-sprite');
+        gunEmpty.classList.add('hidden-sprite');
+        chibi.style.cursor = 'default';
+
+        // Munculkan Gun
+        gun.classList.remove('hidden-sprite');
+        
+        // --- Gun Retreat: Gun mundur ke posisi bertahan (40% kiri) ---
+        gun.style.transition = 'left 0.8s ease-out';
+        gun.style.left = `${GUN_TARGET_LEFT_PERCENT}%`; 
+        
+        // Setelah animasi mundur (0.8s), mulai mode DEFENSE
+        setTimeout(setupDefenseState, 1000); 
+    }
+
+    // DEFENSE State (Zombie datang dan menembak)
+    function setupDefenseState() {
+        gameState = GAME_STATES.DEFENSE;
+        gameContainer.style.cursor = 'crosshair'; // Kursor menembak
+        startZombieWave();
+        // BGM sekarang dimulai di tombol START
+    }
+
+    // --- LOGIKA ZOMBIE & TEMBAKAN ---
+
+    function startZombieWave() {
+        if (zombieInterval) clearInterval(zombieInterval);
+        
+        // Mulai interval untuk spawn zombie. Spawn lebih cepat.
+        zombieInterval = setInterval(() => {
+            if (currentZombieCount < MAX_ZOMBIES) {
+                spawnZombie(false); // Zombie biasa
+                currentZombieCount++;
+            } else if (currentZombieCount === MAX_ZOMBIES) {
+                spawnZombie(true); // Boss zombie
+                gameState = GAME_STATES.BOSS;
+                currentZombieCount++; 
+                clearInterval(zombieInterval);
+            }
+        }, 500); // *** SPAWN SETIAP 0.5 DETIK ***
+    }
+
+    function spawnZombie(isBoss) {
+        const zombie = document.createElement('img');
+        zombie.src = 'img/zombie.PNG'; 
+        zombie.alt = isBoss ? 'Boss Zombie' : 'Zombie';
+        zombie.className = 'sprite zombie';
+        zombie.dataset.health = isBoss ? bossHealth : 1;
+        zombie.dataset.isBoss = isBoss;
+        
+        // Target Gun (fixed position setelah mundur)
+        const targetX = window.innerWidth * (GUN_TARGET_LEFT_PERCENT / 100);
+        const targetY = window.innerHeight * 0.5; // 50% height
+
+        // Randomly select spawn edge (0: Top, 1: Right, 2: Bottom, 3: Left)
+        const edge = Math.floor(Math.random() * 4); 
+
+        let startX, startY;
+
+        // Hitung posisi awal (pixel)
+        if (edge === 0) { // Top
+            startX = Math.random() * window.innerWidth;
+            startY = -ZOMBIE_OFFSCREEN_OFFSET;
+        } else if (edge === 1) { // Right
+            startX = window.innerWidth + ZOMBIE_OFFSCREEN_OFFSET;
+            startY = Math.random() * window.innerHeight;
+        } else if (edge === 2) { // Bottom
+            startX = Math.random() * window.innerWidth;
+            startY = window.innerHeight + ZOMBIE_OFFSCREEN_OFFSET;
+        } else { // Left (edge === 3)
+            startX = -ZOMBIE_OFFSCREEN_OFFSET;
+            startY = Math.random() * window.innerHeight;
+        }
+
+        zombie.style.left = `${startX}px`;
+        zombie.style.top = `${startY}px`;
+        
+        // Hitung vektor pergerakan (Vx, Vy)
+        const dx = targetX - startX;
+        const dy = targetY - startY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Kecepatan vektor (seberapa jauh bergerak per langkah)
+        const effectiveSpeed = isBoss ? zombieSpeed / 2 : zombieSpeed;
+        zombie.dataset.vx = (dx / distance) * effectiveSpeed;
+        zombie.dataset.vy = (dy / distance) * effectiveSpeed;
+        
+        // Simpan posisi saat ini
+        zombie.dataset.currentX = startX;
+        zombie.dataset.currentY = startY;
+
+        gameContainer.appendChild(zombie);
+        moveZombie(zombie);
+    }
+
+    function moveZombie(zombie) {
+        const vx = parseFloat(zombie.dataset.vx);
+        const vy = parseFloat(zombie.dataset.vy);
+        
+        let currentX = parseFloat(zombie.dataset.currentX);
+        let currentY = parseFloat(zombie.dataset.currentY);
+
+        const intervalId = setInterval(() => {
+            if (gameState === GAME_STATES.GAME_OVER) {
+                clearInterval(intervalId);
+                return;
+            }
+
+            // Pindahkan zombie
+            currentX += vx;
+            currentY += vy;
+
+            zombie.dataset.currentX = currentX;
+            zombie.dataset.currentY = currentY;
+
+            zombie.style.left = `${currentX}px`;
+            zombie.style.top = `${currentY}px`;
+            zombie.style.transform = 'translateY(-50%)'; // Pertahankan penyesuaian Y
+
+            const gunRect = gun.getBoundingClientRect();
+            const zombieRect = zombie.getBoundingClientRect();
+
+            // Hitung jarak antara pusat Gun dan pusat Zombie
+            const currentGunX = gunRect.left + gunRect.width / 2;
+            const currentGunY = gunRect.top + gunRect.height / 2;
+            const currentZombieX = zombieRect.left + zombieRect.width / 2;
+            const currentZombieY = zombieRect.top + zombieRect.height / 2;
+
+            const distanceToGun = Math.sqrt(
+                Math.pow(currentGunX - currentZombieX, 2) + 
+                Math.pow(currentGunY - currentZombieY, 2)
+            );
+
+            // Cek Collision
+            if (distanceToGun < COLLISION_THRESHOLD) { 
+                clearInterval(intervalId);
+                // Trigger Game Over jika BOSS atau ZOMBIE BIASA menabrak Gun
+                gameOver(zombie); 
+            }
+        }, 20); // 50 FPS
+        
+        zombie.dataset.intervalId = intervalId;
+    }
+
+    // Tembakan Peluru (LOGIKA TEMBAKAN TETAP SAMA)
+    gameContainer.addEventListener('click', (e) => {
+        if (gameState !== GAME_STATES.DEFENSE && gameState !== GAME_STATES.BOSS) return;
+        
+        const zombieTarget = e.target.classList.contains('zombie') ? e.target : null;
+        
+        if (!zombieTarget) return;
+
+        playAudio(audioShoot);
+        
+        const gunRect = gun.getBoundingClientRect();
+        
+        // Spawn Peluru
+        const peluru = document.createElement('img');
+        peluru.src = 'img/peluru.PNG'; 
+        peluru.className = 'peluru';
+        // Posisi mulai dari tengah gun (disesuaikan dengan posisi Gun yang baru)
+        peluru.style.left = `${gunRect.left + gunRect.width / 2}px`;
+        peluru.style.top = `${gunRect.top + gunRect.height / 2 - peluru.offsetHeight / 2}px`;
+        gameContainer.appendChild(peluru);
+        
+        const targetRect = zombieTarget.getBoundingClientRect();
+        
+        // Animasi peluru ke target pusat zombie
+        setTimeout(() => {
+            peluru.style.left = `${targetRect.left + targetRect.width / 2}px`;
+            peluru.style.top = `${targetRect.top + targetRect.height / 2}px`;
+            peluru.style.opacity = 0; 
+        }, 10);
+
+        // Cek Hit setelah peluru 'mencapai'
+        setTimeout(() => {
+            if (checkHit(zombieTarget, peluru)) {
+                handleHit(zombieTarget);
+            }
+            peluru.remove();
+        }, 250); 
+    });
+
+    // Cek Hit (Sederhana)
+    function checkHit(zombie, peluru) {
+        return true; 
+    }
+
+    // Menangani Zombie Kena Tembak (LOGIKA HIT TETAP SAMA)
+    function handleHit(zombie) {
+        let health = parseInt(zombie.dataset.health);
+        health--;
+        zombie.dataset.health = health;
+
+        if (health <= 0) {
+            playAudio(audioHit);
+            clearInterval(zombie.dataset.intervalId);
+            const zombieRect = zombie.getBoundingClientRect();
+            animateExplosion(zombieRect);
+            animateGhost(zombieRect);
+            zombie.remove();
+
+        } else if (zombie.dataset.isBoss === 'true') {
+            zombie.style.transform = 'scale(1.1) translateY(-50%)';
+            setTimeout(() => {
+                zombie.style.transform = 'scale(1.0) translateY(-50%)';
+            }, 100);
+            playAudio(audioHit);
+        }
+    }
+
+    // Animasi Ledakan (LOGIKA ANIMASI TETAP SAMA)
+    function animateExplosion(rect) {
+        ledakan.style.display = 'block';
+        ledakan.style.left = `${rect.left}px`;
+        ledakan.style.top = `${rect.top}px`;
+        
+        setTimeout(() => {
+            ledakan.style.display = 'none';
+        }, 300);
+    }
+    
+    // Animasi Ghost (LOGIKA ANIMASI TETAP SAMA)
+    function animateGhost(rect) {
+        ghost.style.display = 'block';
+        ghost.style.left = `${rect.left}px`;
+        ghost.style.top = `${rect.top}px`;
+        
+        ghost.style.transition = 'top 2s ease-out, opacity 2s ease-out';
+        setTimeout(() => {
+            ghost.style.top = `${rect.top - 200}px`; 
+            ghost.style.opacity = 0;
+        }, 50);
+        
+        setTimeout(() => {
+            ghost.style.display = 'none';
+            ghost.style.opacity = 1;
+            ghost.style.transition = 'none';
+        }, 2050);
+    }
+
+    // --- GAME OVER (Kekalahan) ---
+    function gameOver(collidingZombie) {
+        gameState = GAME_STATES.GAME_OVER;
+        stopAudio(audioBGM); 
+        playAudio(audioGameOver);
+        
+        // Hapus semua zombie yang tersisa dan interval
+        document.querySelectorAll('.zombie').forEach(z => clearInterval(z.dataset.intervalId));
+        document.querySelectorAll('.zombie').forEach(z => z.remove());
+        if (zombieInterval) clearInterval(zombieInterval);
+
+        const gunRect = gun.getBoundingClientRect();
+        
+        // Animasi Ledakan BESAR di Gun (momen kekalahan)
+        animateExplosion(gunRect);
+        
+        // Hapus Gun dan Zombie yang menabrak
+        gun.classList.add('hidden-sprite');
+        if (collidingZombie) collidingZombie.remove();
+        
+        // Tampilkan end.PNG (Momen Kekalahan Final) - Besar di tengah
+        finalScreen.style.display = 'flex';
+        endImage.classList.remove('hidden-sprite');
+        endImage.style.width = '90%'; // Memastikan end.PNG besar
+        
+        // Transisi ke Game Over Screen setelah 3 detik (3000ms)
+        setTimeout(() => { // Perubahan 2: Durasi transisi 10 detik diubah menjadi 3 detik
+            endImage.classList.add('hidden-sprite');
+            gameOverImage.classList.remove('hidden-sprite');
+            gameOverImage.style.width = '90%'; // Memastikan gameover.PNG juga besar
+            gameOverText.classList.remove('hidden-sprite');
+        }, 3000); // Durasi 3 detik
+    }
+
+    // Navigasi ke Halaman Selanjutnya
+    gameOverText.addEventListener('click', () => {
+        // Ganti ini ke URL tujuan Anda
+        window.location.href = 'menu.html'; 
+    });
+    
+    window.addEventListener('beforeunload', () => {
+        stopAudio(audioBGM); 
+        audioStep.pause();
+        audioShoot.pause();
+        audioHit.pause();
+        audioGameOver.pause();
+    });
+
+</script>
+</body>
+</html>

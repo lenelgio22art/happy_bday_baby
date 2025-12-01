@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="id">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Menu Rahasia Spesial</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Impor Font Pixel (Press Start 2P) */
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        
+        :root {
+            --pixel-font: 'Press Start 2P', cursive;
+            --pink-bg: #FFC0CB; /* Pink Latar Belakang */
+            --pink-accent: #ff4799; /* Pink Akses Tombol/Aksen */
+            --dark-pink-text: #E75480; 
+            --text-color: #333333;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            font-family: var(--pixel-font);
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* Container Utama dengan Latar Belakang Pink */
+        .pink-background {
+            background-color: var(--pink-bg);
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            transition: background-color 2s ease-in-out;
+            box-sizing: border-box;
+        }
+        
+        /* Gaya Tombol Menu Utama (Pixel Style) */
+        .menu-button {
+            font-size: 1rem; 
+            padding: 1rem 2rem;
+            background-color: white; 
+            color: var(--pink-accent);
+            border: 4px solid var(--pink-accent);
+            border-radius: 8px;
+            box-shadow: 6px 6px 0px var(--pink-accent);
+            transition: all 0.1s;
+            cursor: pointer;
+            text-align: center;
+            width: 90%;
+            max-width: 350px;
+        }
+
+        .menu-button:hover {
+            background-color: var(--pink-accent);
+            color: white;
+            box-shadow: 2px 2px 0px black; 
+            transform: translate(4px, 4px);
+        }
+        
+        .header-text {
+            color: var(--text-color);
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            text-shadow: 2px 2px white;
+            text-align: center;
+        }
+
+        /* FLEX CENTER UTILITY UNTUK SEMUA VIEW */
+        .centered-view {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* --- Animasi Denyut (Pulse) --- */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse-spark {
+            animation: pulse 1.5s infinite;
+        }
+
+        /* --- Lilin/Api --- */
+        @keyframes flicker {
+            0%, 100% { clip-path: polygon(50% 0%, 65% 30%, 50% 60%, 35% 30%); }
+            25% { clip-path: polygon(50% 5%, 60% 35%, 50% 55%, 40% 35%); }
+            50% { clip-path: polygon(50% 0%, 70% 25%, 50% 50%, 30% 25%); }
+            75% { clip-path: polygon(50% 8%, 62% 38%, 50% 58%, 38% 38%); }
+        }
+        .candle-fire {
+            width: 15px; height: 30px; background-color: yellow;
+            position: absolute; top: -25px; left: 50%;
+            transform: translateX(-50%);
+            clip-path: polygon(50% 0%, 65% 30%, 50% 60%, 35% 30%);
+            animation: flicker 0.3s infinite alternate;
+            filter: drop-shadow(0 0 5px orange) drop-shadow(0 0 1px yellow);
+            z-index: 110;
+        }
+        
+        .candle-base {
+            position: absolute;
+            z-index: 100;
+            width: 4px; /* Lebar Lilin */
+            height: 25px; /* Tinggi Lilin */
+            background-color: white;
+            border-bottom: 2px solid #ccc;
+        }
+        
+        /* Final Screen */
+        .final-text {
+            color: var(--dark-pink-text);
+            font-size: 1.5rem;
+            text-shadow: 3px 3px white;
+            animation: pulse 1s infinite;
+            /* Pastikan teks final muncul perlahan */
+            opacity: 0; 
+            transition: opacity 1s ease-in-out 0.5s;
+        }
+        
+        /* Bubble */
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            animation: float 5s infinite ease-in;
+            opacity: 0;
+        }
+        @keyframes float {
+            0% { transform: translateY(0); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(-1000px); opacity: 0; }
+        }
+        
+        /* Style tambahan untuk Iframe YouTube agar responsif */
+        .video-container {
+            position: relative;
+            width: 100%;
+            /* Aspek rasio 16:9 (9 / 16 * 100) */
+            padding-bottom: 56.25%; 
+            height: 0;
+            overflow: hidden;
+            max-width: 600px;
+        }
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 4px solid var(--pink-accent); /* Tambahkan border pixel style */
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- AUDIO FILES -->
+    <audio id="audioHit" src="audio/hit.mp3" preload="auto"></audio>
+    <audio id="audioHome" src="audio/home.mp3" preload="auto"></audio>
+    <audio id="audioBday" src="audio/bday.mp3" preload="auto"></audio>
+    <audio id="audioBlow" src="audio/blow.mp3" preload="auto"></audio>
+    <audio id="audioFinal" src="audio/olivia_dean_so_easy.mp3" preload="auto"></audio> 
+
+    <div id="gameContainer" class="pink-background">
+        
+        <!-- ============================================== -->
+        <!-- 1. MAIN MENU VIEW -->
+        <!-- ============================================== -->
+        <div id="mainMenu" class="centered-view gap-6">
+            <h1 class="header-text">CHOOSE ANYTHING U WANT BABY!</h1>
+            
+            <button id="btnLoveLetter" class="menu-button">LOVE LETTER</button>
+            <button id="btnSillyUs" class="menu-button">SILLY US</button>
+            <button id="btnHbdBaby" class="menu-button">HAPPY BDAY BABY</button>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- 2. LOVE LETTER VIEW -->
+        <!-- ============================================== -->
+        <div id="loveLetterView" class="hidden relative centered-view max-w-xl p-4 md:p-8">
+            
+            <div id="envelopeView" class="flex flex-col items-center justify-center">
+                <img id="envelopeImg" src="img/envelope.PNG" alt="Envelope" 
+                     class="w-48 md:w-64 h-auto cursor-pointer pulse-spark" 
+                     style="image-rendering: pixelated;" 
+                     onerror="this.onerror=null; this.src='https://placehold.co/256x256/ff4799/ffffff?text=KLIK+ENVELOPE'"
+                />
+                <p class="mt-4 text-gray-700 text-xs">KLIK UNTUK MEMBUKA</p>
+            </div>
+
+            <div id="letterContentView" class="hidden absolute inset-0 bg-white p-4 md:p-8 flex flex-col items-center">
+                
+                <div class="w-full h-full letter-content relative flex flex-col">
+                    
+                    <pre class="font-['Press Start 2P'] text-xs whitespace-pre-wrap text-gray-800 flex-grow overflow-y-auto">
+-- TO MA LOVELY LIL MADAM BABY! --
+
+Happy Birthday, my amazing Madam Baby! Can you believe it's
+already your first birthday we get to share? This year has honestly been the
+biggest, best surprise.
+
+I love that little bit of self-centered goofiness joke, it’s so uniquely you, 
+and it’s part of the spark that caught my attention in the first place. 
+While I laughing I tho “Damn, how silly this person is,” You demand the best, 
+and you are the best, ma little Otterie.
+
+It’s your kindness that truly touches the deepest place in my heart. The way
+you look out for other people, the generous way you give your time, the sweet
+empathy you show in every situation, that is the real, lasting thing that made
+me fall for you. It's the core of who you are, and it makes you shine brighter
+than anyone.
+
+Thank you for spending this year with me. Let’s make this birthday absolutely perfect.
+
+With all my love,
+
+
+
+Ur baby Dinosaur
+                    </pre>
+                    
+                    <div class="absolute bottom-4 right-4 flex justify-end">
+                         <button id="btnLetterBack" class="menu-button text-xs max-w-[150px]">
+                            BACK
+                        </button>
+                    </div>
+                   
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- 3. SILLY US VIEW (YOUTUBE EMBED) -->
+        <!-- ============================================== -->
+        <div id="sillyUsView" class="hidden centered-view max-w-2xl p-4">
+            <h2 class="header-text mb-6">LOOK LIKE US</h2>
+            
+            <div class="video-container">
+                <!-- 
+                !!! ID VIDEO YOUTUBE TELAH DIGANTI KE vRc0V1_msII !!!
+                -->
+                <iframe 
+                    id="sillyUsIframe"
+                    width="100%" 
+                    height="100%" 
+                    src="https://www.youtube.com/embed/vRc0V1_msII?autoplay=1&rel=0" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen>
+                </iframe>
+            </div>
+            
+            <button id="btnSillyBack" class="menu-button text-xs mt-6">
+                BACK
+            </button>
+        </div>
+
+
+        <!-- ============================================== -->
+        <!-- 4. HAPPY BDAY VIEW (LILIN & CINTA) -->
+        <!-- ============================================== -->
+        <div id="hbdView" class="hidden centered-view p-4 w-full h-full">
+            
+            <div class="relative flex items-center justify-center w-full max-w-5xl h-full">
+                
+                <h2 id="hbdHeaderText" class="header-text absolute z-20" 
+                    style="top: 15%; left: 50%; transform: translate(-50%, -50%); white-space: nowrap;">
+                    HAPPY BIRTHDAY MA LOVE!
+                </h2>
+
+                <img id="kissImg" src="img/kiss.PNG" alt="Kiss" 
+                     class="absolute pulse-spark w-40 md:w-64 h-auto z-10" 
+                     style="left: 5%; top: 50%; transform: translateY(-50%); image-rendering: pixelated;" 
+                     onerror="this.onerror=null; this.src='https://placehold.co/250x250/FF69B4/ffffff?text=KISS.PNG'"
+                />
+
+                <div id="cakeWrapper" class="relative flex flex-col items-center justify-center z-10">
+                    
+                    <img id="cakeImg" src="img/cake.PNG" alt="Birthday Cake" 
+                         class="z-0 w-64 md:w-96 h-auto" style="image-rendering: pixelated;" 
+                         onerror="this.onerror=null; this.src='https://placehold.co/384x288/ff4799/ffffff?text=CAKE.PNG'"
+                    />
+
+                    <!-- CONTAINER LILIN (POSISI RELATIF TERHADAP GAMBAR KUE) -->
+                    <div class="absolute inset-0 z-10">
+                        
+                        <!-- LILIN PIXEL 1 (Kiri) -->
+                        <div id="candle1" class="candle-base" style="top: 15%; left: 25%;">
+                            <div id="candleFire1" class="candle-fire"></div>
+                        </div>
+                        
+                        <!-- LILIN PIXEL 2 (Tengah) -->
+                        <div id="candle2" class="candle-base" style="top: 10%; left: 48%;">
+                            <div id="candleFire2" class="candle-fire"></div>
+                        </div>
+                        
+                        <!-- LILIN PIXEL 3 (Kanan) -->
+                        <div id="candle3" class="candle-base" style="top: 15%; left: 71%;">
+                            <div id="candleFire3" class="candle-fire"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <img id="endImg" src="img/end.PNG" alt="End Message" 
+                     class="absolute pulse-spark w-40 md:w-64 h-auto z-10" 
+                     style="right: 5%; top: 50%; transform: translateY(-50%); image-rendering: pixelated;" 
+                     onerror="this.onerror=null; this.src='https://placehold.co/250x250/00FFFF/000000?text=END.PNG'"
+                />
+            </div>
+
+            <div id="hbdControls" class="flex flex-col items-center mt-8">
+                <!-- Tombol "Make A Wish" akan muncul di sini -->
+            </div>
+            
+            <button id="btnHbdBack" class="menu-button text-xs absolute top-4 right-4">
+                BACK
+            </button>
+        </div>
+    </div>
+    
+    <!-- ============================================== -->
+    <!-- 5. FINAL MESSAGE SCREEN -->
+    <!-- ============================================== -->
+    <div id="finalMessageScreen" class="hidden absolute top-0 left-0 w-full h-full pink-background z-50 flex items-center justify-center">
+        <h1 id="finalText" class="final-text text-2xl md:text-4xl text-center">I LOVE U BABY! HAPPY BDAY MA LOVE!</h1>
+    </div>
+
+
+<script>
+    // Konfigurasi State Aplikasi
+    const VIEWS = {
+        MAIN_MENU: 'mainMenu',
+        LOVE_LETTER: 'loveLetterView',
+        SILLY_US: 'sillyUsView',
+        HBD: 'hbdView',
+        FINAL: 'finalMessageScreen'
+    };
+    
+    // Variabel DOM (akan diinisialisasi di window.onload)
+    let gameContainer, mainMenu, loveLetterView, sillyUsView, hbdView, finalMessageScreen, finalText;
+    let envelopeImg, letterContentView, envelopeView;
+    let sillyUsIframe; // Menggunakan Iframe untuk YouTube
+    let hbdControls;
+    let cakeWrapper, hbdHeaderText, kissImg, endImg; 
+    let candleFires = []; 
+    let audioHit, audioHome, audioBday, audioBlow, audioFinal;
+    
+    // URL dasar YouTube Embed
+    const YOUTUBE_EMBED_BASE = 'https://www.youtube.com/embed/';
+
+    // Fungsi untuk menghentikan pemutaran iframe YouTube
+    function stopYoutubeIframe() {
+        if (sillyUsIframe) {
+            // Mengganti src iframe untuk menghentikan pemutaran video
+            const currentSrc = sillyUsIframe.src;
+            if (currentSrc && currentSrc.includes(YOUTUBE_EMBED_BASE)) {
+                // Hapus parameter autoplay=1 dari URL src
+                const videoId = currentSrc.split(YOUTUBE_EMBED_BASE)[1].split('?')[0];
+                sillyUsIframe.src = `${YOUTUBE_EMBED_BASE}${videoId}?rel=0`;
+            }
+        }
+    }
+
+    // --- FUNGSI AUDIO PENDUKUNG ---
+
+    function playAudio(audioElement, loop = false) {
+        if (!audioElement) { 
+            console.warn("Elemen audio tidak ditemukan. Pastikan path file audio benar."); 
+            return; 
+        }
+        audioElement.currentTime = 0;
+        audioElement.loop = loop;
+        audioElement.volume = 0.8;
+        // Tangani pemblokiran autoplay oleh browser
+        audioElement.play().catch(e => {
+            console.warn(`Autoplay diblokir: ${audioElement.id}. Audio akan dimainkan setelah interaksi pertama.`);
+        });
+    }
+    
+    function stopAudio(audioElement) {
+        if (!audioElement) return;
+        audioElement.pause();
+        audioElement.currentTime = 0;
+        audioElement.loop = false;
+        audioElement.onended = null; 
+    }
+
+    function stopAllAudioExcept(nextView) {
+        if (nextView !== VIEWS.LOVE_LETTER) stopAudio(audioHome);
+        if (nextView !== VIEWS.HBD) stopAudio(audioBday);
+        if (nextView !== VIEWS.FINAL) stopAudio(audioFinal);
+        stopAudio(audioBlow); 
+    }
+
+    // --- LOGIC PERPINDAHAN VIEW ---
+    function renderView(viewName) {
+        stopAllAudioExcept(viewName);
+        playAudio(audioHit); 
+        
+        // Sembunyikan semua view
+        [mainMenu, loveLetterView, sillyUsView, hbdView, finalMessageScreen].forEach(v => {
+            if (v) v.classList.add('hidden');
+        });
+        
+        // Pastikan video YouTube di-pause/dihentikan saat meninggalkan view Silly Us
+        stopYoutubeIframe(); 
+
+        // Atur background dan transisi
+        gameContainer.style.transition = 'none';
+        if (viewName !== VIEWS.FINAL) {
+             gameContainer.style.backgroundColor = 'var(--pink-bg)';
+        }
+
+        const targetView = document.getElementById(viewName);
+        if (targetView) targetView.classList.remove('hidden');
+
+        switch (viewName) {
+            case VIEWS.LOVE_LETTER:
+                playAudio(audioHome, true); 
+                break;
+            case VIEWS.SILLY_US:
+                // Saat masuk view Silly Us, mulai ulang iframe dengan autoplay=1
+                if (sillyUsIframe) {
+                    const videoId = sillyUsIframe.src.split(YOUTUBE_EMBED_BASE)[1].split('?')[0];
+                    sillyUsIframe.src = `${YOUTUBE_EMBED_BASE}${videoId}?autoplay=1&rel=0`;
+                }
+                break;
+            case VIEWS.HBD:
+                setupHBDView();
+                break;
+            case VIEWS.FINAL:
+                showFinalMessage();
+                break;
+        }
+    }
+    
+    // --- LOVE LETTER LOGIC ---
+    function openLetter() {
+        playAudio(audioHit);
+        envelopeView.classList.add('hidden');
+        letterContentView.classList.remove('hidden');
+    }
+
+    // --- HAPPY BDAY LOGIC ---
+    function setupHBDView() {
+        if (hbdControls) hbdControls.innerHTML = '';
+        
+        // Pastikan semua lilin menyala
+        candleFires.forEach(fire => {
+            if (fire) fire.style.display = 'block'; 
+        });
+
+        // Tampilkan semua elemen (Kiss, End, Cake, Teks)
+        hbdHeaderText.style.opacity = 1;
+        cakeWrapper.style.opacity = 1; 
+        kissImg.style.opacity = 1;
+        endImg.style.opacity = 1;
+        
+        // 1. Putar lagu Bday (TIDAK LOOPING)
+        playAudio(audioBday, false); 
+        
+        // 2. Pasang Event Listener: Tampilkan tombol setelah lagu selesai
+        audioBday.onended = () => {
+            console.log("Audio Bday Selesai. Menampilkan tombol MAKE A WISH.");
+            showMakeAWishButton();
+            audioBday.onended = null; 
+        };
+    }
+
+    function showMakeAWishButton() {
+        hbdControls.innerHTML = `
+            <button id="makeAWishBtn" class="menu-button pulse-spark text-lg">
+                MAKE A WISH
+            </button>
+            <p class="mt-4 text-xs text-gray-700 font-normal">TUTUP MATA & BERDOA</p>
+        `;
+        document.getElementById('makeAWishBtn').addEventListener('click', handleMakeAWishClick);
+    }
+    
+    function handleMakeAWishClick() {
+        playAudio(audioHit);
+        hbdControls.innerHTML = ''; // Hilangkan tombol "Make a Wish"
+        
+        // Tampilkan tombol "Blow the Candle" setelah 10 detik (waktu berdoa)
+        setTimeout(() => {
+            hbdControls.innerHTML = `
+                <button id="blowTheCandleBtn" class="menu-button pulse-spark text-lg">
+                    BLOW THE CANDLE
+                </button>
+            `;
+            document.getElementById('blowTheCandleBtn').addEventListener('click', startBlowSequence);
+        }, 10000); 
+    }
+    
+    function startBlowSequence() {
+        playAudio(audioHit); // Suara klik
+        playAudio(audioBlow); // Suara tiupan
+        stopAudio(audioBday); 
+        
+        // 1. Lilin padam semua
+        candleFires.forEach(fire => {
+            if (fire) fire.style.display = 'none'; 
+        });
+        
+        if (hbdControls) hbdControls.innerHTML = '';
+        
+        // 2. Memulai Transisi Fade-to-Black untuk semua elemen dan background
+        gameContainer.style.transition = 'background-color 1.5s ease-in-out';
+        gameContainer.style.backgroundColor = 'black'; 
+        
+        // Fade out semua elemen di hbdView (cake, kiss, end, teks)
+        hbdHeaderText.style.transition = 'opacity 1.5s ease-in-out';
+        cakeWrapper.style.transition = 'opacity 1.5s ease-in-out'; 
+        kissImg.style.transition = 'opacity 1.5s ease-in-out';
+        endImg.style.transition = 'opacity 1.5s ease-in-out';
+
+        hbdHeaderText.style.opacity = 0;
+        cakeWrapper.style.opacity = 0;
+        kissImg.style.opacity = 0;
+        endImg.style.opacity = 0;
+        
+        // 3. Setelah transisi gelap selesai, beralih ke Final View
+        setTimeout(() => {
+            renderView(VIEWS.FINAL);
+        }, 1500); 
+    }
+
+    // --- FINAL MESSAGE LOGIC ---
+    function addLoveBubbles() {
+        const numBubbles = 30;
+        const screen = document.getElementById('finalMessageScreen');
+        screen.style.overflow = 'hidden';
+        
+        for (let i = 0; i < numBubbles; i++) {
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            const size = Math.random() * 20 + 10; 
+            bubble.style.width = `${size}px`;
+            bubble.style.height = `${size}px`;
+            bubble.style.left = `${Math.random() * 100}vw`; 
+            bubble.style.bottom = `${-50 - Math.random() * 200}px`; 
+            bubble.style.animationDelay = `${Math.random() * 5}s`;
+            bubble.style.animationDuration = `${Math.random() * 5 + 5}s`;
+            screen.appendChild(bubble);
+        }
+    }
+
+    function showFinalMessage() {
+        stopAllAudioExcept(VIEWS.FINAL);
+        finalMessageScreen.classList.remove('hidden');
+
+        playAudio(audioFinal, true); 
+
+        setTimeout(() => {
+             finalText.style.opacity = 1; 
+             addLoveBubbles();
+        }, 500); 
+    }
+
+
+    // --- INIALISASI UTAMA (Setelah DOM siap) ---
+    window.onload = function() {
+        // 1. Ambil semua elemen DOM
+        gameContainer = document.getElementById('gameContainer');
+        mainMenu = document.getElementById('mainMenu');
+        loveLetterView = document.getElementById('loveLetterView');
+        sillyUsView = document.getElementById('sillyUsView');
+        hbdView = document.getElementById('hbdView');
+        finalMessageScreen = document.getElementById('finalMessageScreen');
+        finalText = document.getElementById('finalText');
+        hbdControls = document.getElementById('hbdControls');
+        cakeWrapper = document.getElementById('cakeWrapper'); 
+        hbdHeaderText = document.getElementById('hbdHeaderText');
+        kissImg = document.getElementById('kissImg');
+        endImg = document.getElementById('endImg');
+        
+        // Ambil elemen Api Lilin
+        candleFires = [
+            document.getElementById('candleFire1'),
+            document.getElementById('candleFire2'),
+            document.getElementById('candleFire3')
+        ];
+        
+        // Ambil elemen interaktif
+        const btnLoveLetter = document.getElementById('btnLoveLetter');
+        const btnSillyUs = document.getElementById('btnSillyUs');
+        const btnHbdBaby = document.getElementById('btnHbdBaby');
+        const btnLetterBack = document.getElementById('btnLetterBack');
+        const btnSillyBack = document.getElementById('btnSillyBack');
+        const btnHbdBack = document.getElementById('btnHbdBack');
+        envelopeImg = document.getElementById('envelopeImg');
+        letterContentView = document.getElementById('letterContentView');
+        envelopeView = document.getElementById('envelopeView');
+        sillyUsIframe = document.getElementById('sillyUsIframe'); // Ambil Iframe
+        
+        // 2. Ambil elemen Audio
+        audioHit = document.getElementById('audioHit');
+        audioHome = document.getElementById('audioHome');
+        audioBday = document.getElementById('audioBday');
+        audioBlow = document.getElementById('audioBlow');
+        audioFinal = document.getElementById('audioFinal'); 
+        
+        // 3. Pasang Event Listeners
+        
+        // Navigasi Menu Utama
+        btnLoveLetter.addEventListener('click', () => renderView(VIEWS.LOVE_LETTER));
+        btnSillyUs.addEventListener('click', () => renderView(VIEWS.SILLY_US));
+        btnHbdBaby.addEventListener('click', () => renderView(VIEWS.HBD));
+
+        // Navigasi Kembali
+        btnLetterBack.addEventListener('click', () => {
+            // Sembunyikan konten surat dan kembalikan amplop
+            letterContentView.classList.add('hidden');
+            envelopeView.classList.remove('hidden');
+            renderView(VIEWS.MAIN_MENU)
+        });
+        btnSillyBack.addEventListener('click', () => renderView(VIEWS.MAIN_MENU));
+        btnHbdBack.addEventListener('click', () => renderView(VIEWS.MAIN_MENU));
+
+        // Love Letter Logic
+        envelopeImg.addEventListener('click', openLetter);
+        
+        // 4. Mulai di tampilan menu utama
+        renderView(VIEWS.MAIN_MENU);
+        console.log("Aplikasi sudah siap.");
+    };
+</script>
+</body>
+</html>

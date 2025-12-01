@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Otterie — Gift</title>
+<style>
+:root{
+  --bg:#d45f98;
+  --note:#ffd6ea;
+  --accent:#ff2f80;
+  --white:#fff;
+  --pixel: 'Press Start 2P', monospace;
+}
+html,body{height:100%;margin:0;background:var(--bg);font-family:Inter,system-ui,Arial;overflow:hidden}
+
+/* Pixel font import (fallback to system if blocked) */
+@font-face{
+  font-family: 'PressPixel';
+  src: url('https://fonts.cdnfonts.com/s/15025/PressStart2P-Regular.woff') format('woff');
+}
+.top-note{
+  position:fixed;left:50%;top:18px;transform:translateX(-50%);
+  background:var(--note);color:#3b1b2a;padding:12px 20px;border-radius:10px;border:3px solid var(--white);
+  font-weight:800;text-align:center;z-index:4000;font-family:PressPixel, monospace;
+  box-shadow:0 10px 30px rgba(0,0,0,.12);
+  animation:noteFloat 3s ease-in-out infinite;
+}
+@keyframes noteFloat{0%{transform:translate(-50%,-4px)}50%{transform:translate(-50%,6px)}100%{transform:translate(-50%,-4px)}}
+
+/* stage */
+.stage{position:relative;width:100%;height:100%}
+
+/* center love area */
+#loveWrap{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:320px;height:320px;z-index:1200;display:flex;align-items:center;justify-content:center}
+#loveBtn{
+  width:100%;height:100%;border-radius:48%;
+  background:linear-gradient(180deg,#ffd6ea,#ff8fb3);
+  box-shadow:0 18px 48px rgba(255,20,120,0.2), inset 0 -12px 28px rgba(0,0,0,0.08);
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  font-family:PressPixel, monospace;font-weight:900;color:#6b0030;font-size:20px;letter-spacing:.4px;
+  pointer-events:none; user-select:none; transform-origin:center; z-index:1250;
+}
+/* continuous pulse effect */
+@keyframes btnPulse{0%{transform:scale(1)}50%{transform:scale(1.06)}100%{transform:scale(1)}}
+#loveBtn{animation:btnPulse 2200ms ease-in-out infinite}
+
+/* tiny ripple element (created via JS) */
+.ripple{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:50%;border:6px solid rgba(255,120,180,0.12);pointer-events:none}
+@keyframes rippleAnim{from{transform:translate(-50%,-50%) scale(.6);opacity:.9}to{transform:translate(-50%,-50%) scale(2.8);opacity:0}}
+
+/* chibi left & right adjacent to center */
+.chibi{position:absolute;width:170px;height:auto;z-index:2000;cursor:grab;user-select:none;filter:drop-shadow(0 14px 18px rgba(0,0,0,.18));transition:transform .12s linear}
+#chibiLeft{left:calc(50% - 340px); top:calc(50% - 85px)}
+#chibiRight{left:calc(50% + 170px); top:calc(50% - 85px)}
+
+/* trail heart */
+.trail{position:absolute;width:20px;height:20px;pointer-events:none;background-size:contain;background-repeat:no-repeat;z-index:2300;animation:trailUp 1400ms cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes trailUp{0%{transform:translateY(0) scale(.9);opacity:1}100%{transform:translateY(-120px) scale(1.4);opacity:0}}
+
+/* spark */
+.spark{position:absolute;width:8px;height:8px;border-radius:50%;background:rgba(255,230,245,.96);box-shadow:0 0 8px rgba(255,180,220,.85);pointer-events:none;z-index:2500;animation:sparkAnim .9s linear forwards}
+@keyframes sparkAnim{from{transform:translateY(0) scale(.6);opacity:1}to{transform:translateY(-30px) scale(.2);opacity:0}}
+
+/* big pop & kiss */
+.bigPop{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(0);width:460px;height:460px;background:url('img/bigLove.png') center/contain no-repeat;z-index:3000;animation:bigPopAnim .75s cubic-bezier(.2,.9,.2,1) forwards}
+@keyframes bigPopAnim{0%{transform:translate(-50%,-50%) scale(0);opacity:0}60%{transform:translate(-50%,-50%) scale(1.15);opacity:1}100%{transform:translate(-50%,-50%) scale(1);opacity:0}}
+
+#kissImg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:none;width:360px;z-index:3200;animation:kissPulse 2000ms ease-in-out infinite;cursor:pointer;filter:drop-shadow(0 20px 40px rgba(255,60,120,.28))}
+@keyframes kissPulse{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.08)}}
+
+/* press pixel text under kiss */
+#pressBox{position:absolute;left:50%;top:calc(50% + 220px);transform:translateX(-50%);display:none;z-index:3300}
+#pressBox button{font-family:PressPixel, monospace;padding:12px 26px;border-radius:8px;border:3px solid white;background:#ffcee0;color:#6b0026;font-weight:900;cursor:pointer;box-shadow:0 12px 26px rgba(0,0,0,.12)}
+
+/* final floating loves after transform */
+.floatingLove{position:absolute;font-size:26px;color:#ff2f80;animation:floatLoop 3s infinite ease-in-out;pointer-events:none;z-index:3400}
+@keyframes floatLoop{0%{transform:translateY(0) ;opacity:.6}50%{transform:translateY(-22px);opacity:1}100%{transform:translateY(0);opacity:.6}}
+
+/* small responsive */
+@media(max-width:900px){
+  #chibiLeft{left:6%; top:40%}
+  #chibiRight{left:62%; top:40%}
+  #loveWrap{transform:scale(.9)}
+  #kissImg{width:260px}
+}
+</style>
+</head>
+<body>
+  <div class="top-note" id="topNote">Hello! HAPPY BIRTHDAY MADAM BABY!</div>
+
+  <div class="stage" id="stage">
+    <div id="loveWrap"><div id="loveBtn">DRAG THEM HERE</div></div>
+
+    <!-- chibi images (make sure files exist in img/) -->
+    <img id="chibiLeft" class="chibi" src="img/chibi_you.PNG" alt="you">
+    <img id="chibiRight" class="chibi" src="img/chibi_baby.PNG" alt="baby">
+
+    <!-- big pop & kiss -->
+    <div id="bigPopHolder"></div>
+    <img id="kissImg" src="img/kiss.png" alt="kiss">
+
+    <div id="pressBox"><button id="pressBtn">PRESS</button></div>
+  </div>
+
+<script>
+/* ---------- lightweight WebAudio (no files required) ---------- */
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+const audioCtx = AudioCtx ? new AudioCtx() : null;
+function playClick(){ if(!audioCtx) return; const o=audioCtx.createOscillator(), g=audioCtx.createGain(); o.type='sine'; o.frequency.value=720; g.gain.value=0.08; o.connect(g); g.connect(audioCtx.destination); o.start(); o.frequency.exponentialRampToValueAtTime(360, audioCtx.currentTime+0.12); g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+0.18); setTimeout(()=>o.stop(),160); }
+function playPop(){ if(!audioCtx) return; const o=audioCtx.createOscillator(), g=audioCtx.createGain(); o.type='sawtooth'; o.frequency.value=520; g.gain.value=0.14; o.connect(g); g.connect(audioCtx.destination); o.start(); o.frequency.exponentialRampToValueAtTime(220, audioCtx.currentTime+0.16); g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+0.22); setTimeout(()=>o.stop(),220); }
+function playCheer(){ if(!audioCtx) return; const now=audioCtx.currentTime, g=audioCtx.createGain(); g.connect(audioCtx.destination); g.gain.value=0.06; [520,660,880].forEach((f,i)=>{ const o=audioCtx.createOscillator(); o.type='triangle'; o.frequency.value=f; o.connect(g); o.start(now+i*0.03); o.stop(now+0.18+i*0.03); }); }
+
+/* ---------- utils spawn particle / trail ---------- */
+function spawnSpark(x,y){ const s=document.createElement('div'); s.className='spark'; s.style.left=(x-4)+'px'; s.style.top=(y-4)+'px'; document.body.appendChild(s); setTimeout(()=>s.remove(),900); }
+function spawnTrail(x,y){ const t=document.createElement('div'); t.className='trail'; t.style.left=(x-10)+'px'; t.style.top=(y-10)+'px'; t.style.backgroundImage="url('img/smallLove.png')"; document.body.appendChild(t); setTimeout(()=>t.remove(),1500); }
+
+/* ---------- draggable using pointer events (desktop+mobile) ---------- */
+function makeDraggable(el){
+  let down=false, ox=0, oy=0;
+  el.addEventListener('pointerdown', e=>{
+    down=true; el.setPointerCapture && el.setPointerCapture(e.pointerId);
+    const r=el.getBoundingClientRect(); ox=e.clientX - r.left; oy=e.clientY - r.top;
+    el.style.cursor='grabbing';
+    playClick();
+  });
+  window.addEventListener('pointermove', e=>{
+    if(!down) return;
+    const x=e.clientX - ox, y=e.clientY - oy;
+    el.style.left = x+'px'; el.style.top = y+'px';
+    spawnTrail(e.clientX, e.clientY);
+    if(Math.random()>0.7) spawnSpark(e.clientX+(Math.random()*20-10), e.clientY+(Math.random()*20-10));
+    checkBothInside();
+  });
+  window.addEventListener('pointerup', e=>{
+    if(!down) return; down=false; el.style.cursor='grab';
+  });
+}
+const left = document.getElementById('chibiLeft'), right = document.getElementById('chibiRight');
+makeDraggable(left); makeDraggable(right);
+
+/* ---------- ambient sparkles around center ---------- */
+setInterval(()=>{
+  const rect=document.getElementById('loveWrap').getBoundingClientRect();
+  spawnSpark(rect.left + rect.width/2 + (Math.random()*120-60), rect.top + rect.height/2 + (Math.random()*40-20));
+},700);
+
+/* ---------- center ripple pulse ---------- */
+function createRipple(){ const r=document.createElement('div'); r.className='ripple'; r.style.width='320px'; r.style.height='320px'; document.getElementById('loveWrap').appendChild(r); r.style.animation='rippleAnim 1500ms ease-out forwards'; setTimeout(()=>r.remove(),1500); }
+setInterval(createRipple,2200);
+
+/* ---------- check both chibis inside center ---------- */
+let activated=false;
+function rectCenter(r){ return {x:r.left + r.width/2, y:r.top + r.height/2}; }
+function checkBothInside(){
+  if(activated) return;
+  const wrap = document.getElementById('loveWrap').getBoundingClientRect();
+  const L = left.getBoundingClientRect(), R = right.getBoundingClientRect();
+  const cL = rectCenter(L), cR = rectCenter(R);
+  const inside = p => p.x > wrap.left+20 && p.x < wrap.right-20 && p.y > wrap.top+20 && p.y < wrap.bottom-20;
+  if(inside(cL) && inside(cR)){
+    activateSequence();
+  }
+}
+
+/* ---------- activation: big pop, hide chibis, show kiss, press ---------- */
+function activateSequence(){
+  activated=true;
+  playPop();
+  // burst of trails
+  for(let i=0;i<28;i++){ setTimeout(()=>{ spawnTrail(window.innerWidth/2 + (Math.random()*300-150), window.innerHeight/2 + (Math.random()*140-70)); }, i*12); }
+  // big pop image
+  const big = document.createElement('div'); big.className='bigPop'; document.body.appendChild(big);
+  setTimeout(()=>{ big.remove(); }, 900);
+  // after pop: hide chibis, show kiss, enable press
+  setTimeout(()=>{
+    left.style.display='none'; right.style.display='none';
+    const k = document.getElementById('kissImg'); k.style.display='block';
+    playCheer();
+    // show press
+    document.getElementById('pressBox').style.display='block';
+    document.getElementById('topNote').style.display='none';
+    // floating loves around
+    for(let i=0;i<14;i++){
+      const f = document.createElement('div'); f.className='floatingLove'; f.innerText='❤';
+      f.style.left = (50 + Math.random()*30 - 15) + '%'; f.style.top = (50 + Math.random()*30 - 15) + '%';
+      document.body.appendChild(f);
+    }
+    // click kiss -> next page
+    k.onclick = ()=>{ playClick(); document.getElementById('pressBtn').click(); };
+  },780);
+}
+
+/* ---------- pressBtn click -> fade -> go nextpage ---------- */
+document.getElementById('pressBtn').addEventListener('click', ()=>{
+  playPop();
+  const fade=document.createElement('div'); fade.style.position='fixed'; fade.style.left=0; fade.style.top=0; fade.style.width='100%'; fade.style.height='100%'; fade.style.background=getComputedStyle(document.body).backgroundColor; fade.style.opacity=0; fade.style.zIndex=9999; document.body.appendChild(fade);
+  fade.style.transition='opacity .9s ease'; setTimeout(()=>fade.style.opacity=1,10);
+  setTimeout(()=> location.href='album2.html',900);
+});
+
+/* prevent ghost dragging of images */
+Array.from(document.images).forEach(i=>i.ondragstart = ()=> false);
+</script>
+</body>
+</html>
